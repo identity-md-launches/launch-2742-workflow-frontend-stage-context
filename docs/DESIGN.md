@@ -21,7 +21,9 @@ assignment may write only `web/**`, `dist/**` and `docs/**`; the repository root
 
 - Header: brand button, nav (Play, Leaderboard, Contract, How to play; `aria-current` on the active
   view), sound toggle (SVG), language toggle (中/EN), one wallet control. Under 680 px the nav wraps to
-  a full-width second row.
+  a full-width second row. The English labels are about twice as wide as the Chinese ones, so in
+  English (`html:lang(en)`) the nav takes its own row from 960 px down, with labels kept on one line,
+  and becomes a 2×2 grid at 440 px and below.
 - Wrong-chain banner: one sentence and one primary "Switch to Sepolia" button.
 - Buttons: 44 px minimum, rest / hover (lighter fill, stronger border) / active / disabled 60 % /
   2 px ink focus ring with 2 px offset. Primary = orange fill, white text.
@@ -44,10 +46,12 @@ assignment may write only `web/**`, `dist/**` and `docs/**`; the repository root
 
 - ≥1001 px: game in three columns (route, board, tools).
 - 681–1000 px: route column hidden; board + tools.
+- ≤960 px, English only: nav on its own full-width row under the brand and header actions.
 - ≤680 px: 16 px gutters, nav on its own row, h1 28 px, phase tiles and rules stacked, game becomes
   a single column (mission, board ≤280 px wide, queue, tools), sheet becomes a bottom sheet. The
   delivery hint keeps `min-height: 3.2em` (two lines) so the board does not move when its copy
   changes between waiting, ready and done.
+- ≤440 px, English only: nav as two columns of two (142 px wide buttons at 320 px).
 - `body` min-width 320 px; addresses wrap with `overflow-wrap:anywhere`; the probe found no sideways
   scroll at 320, 390 or 1440.
 - `prefers-reduced-motion`: transitions off.

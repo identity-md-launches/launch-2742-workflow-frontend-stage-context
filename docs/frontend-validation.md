@@ -12,7 +12,7 @@ SqueekSupplyBoard 0x21384e42f851956fa673459297d76dfe8e778c5d, abiHash 1378c693�
 | `npm run typecheck` (tsc strict, noImplicitAny off for the ported game shell) | pass |
 | `npm run build` | pass; manifest written, 10 assets hashed |
 | `npm test` (vitest, 7 tests) | 7/7 pass |
-| `node test/e2e.mjs` (Chromium, 390 px, scripted EIP-6963 wallet) | 19/20 pass, see below |
+| `node test/e2e.mjs` (Chromium, 390 px, scripted EIP-6963 wallet) | 20/21 pass, see below and "Revision 3" |
 | Revision reproduction script (Chromium and WebKit, see "Revision 2") | all pass on the new export; 8 fail on the previous export |
 | design probe `taste.mjs` on `dist/` | 16/16 checks pass |
 | On-chain: `eth_getCode` / `signer()` / `owner()` via the public Sepolia RPC | code present; signer 0x2Dc8…8653, owner 0x5140…2575, as the brief states |
@@ -110,3 +110,34 @@ With that, e2e is 19/20; "no page errors" still fails with the same `undefined` 
 above, and it fails the same way on the previous export. Design probe after the final build: 16/16
 checks pass; the 390 screenshot shows headline, both play buttons and the wallet control on the
 first screen. Not re-tested: the full played delivery cycle, real wallets, phones.
+
+## Revision 3: reviewer finding
+
+- 0fe1e654 (English navigation overflows and clips "How to play" at 320 px), reproduced on the
+  committed export in Chromium (Playwright) at 320x844 with `localStorage["ss.lang"]="en"`:
+  scrollWidth 337, `#helpBtn` x 288, right 337, its label wrapped and cut at the right edge. A sweep
+  from 300 to 1500 px in 10 px steps found the same cause in a second place: in English from 690 to
+  850 px the one-row desktop header needs about 945 px (brand 125, nav 486 with labels on one
+  line, actions 268), so scrollWidth stayed at 855. English nav labels also wrapped onto up to three
+  lines (75 px tall buttons) from 340 to 390 px. Chinese had no overflow at any width.
+  The reviewer suggested a two-column grid at ≤360 px for every language. That fixes 320 px, but it
+  leaves the 690–850 px overflow and the three-line labels at 390 px, and it pushes the Chinese nav,
+  which fits on one row, into two rows. Fix in `web/src/style.css` (rules after the ≤680 px
+  block), keyed on the `lang` attribute `applyI18n()` sets: in English at ≤960 px the topbar
+  wraps, the nav takes its own full-width row and its labels stay on one line; at ≤440 px the nav is
+  `grid-template-columns: repeat(2, minmax(0, 1fr))`. Chinese layout unchanged.
+  After the rebuild: English 320 scrollWidth 320, four 142x44 px buttons with right edges ≤304;
+  390 four 177x44 px buttons; 700 px header within 700 px. The sweep finds no sideways scroll from
+  320 to 1500 px in either language (below 320 the existing `body` min-width applies).
+  Screenshots at 320 and 390 in English show headline, "Play daily challenge", "Free practice" and
+  the wallet control on the first screen.
+- Added to `web/test/e2e.mjs`: "English nav fits with no horizontal scroll at 320 and 820" (switches
+  language with the real toggle, then switches back). e2e on the rebuilt export: 20/21. The new check
+  passes (`help` right edge 304 at 320, 800 at 820). "no page errors" still fails with the same
+  `undefined` rejection recorded above.
+- `npm run build` (tsc + Vite + manifest): pass, 10 assets. `npm test`: 7/7. Design probe
+  `taste.mjs`: 16/16. The JS chunks are byte-identical to the previous export apart from the hashed
+  file names they reference, which changed with the CSS hash.
+- Not covered: WebKit was not re-run in this round (only Chromium is available here); real phones
+  and real wallets not tested. Chinese labels still wrap onto two lines between 681 and about 700 px
+  without overflowing; that was not part of the finding and was left unchanged.

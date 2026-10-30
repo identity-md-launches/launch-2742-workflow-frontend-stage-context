@@ -99,6 +99,16 @@ try {
   const first = await page.evaluate(() => ["#dailyBtn", "#walletBtn", "h1"].map((s) => document.querySelector(s).getBoundingClientRect().bottom));
   check("main action, wallet control and headline on the first 390x844 screen", first.every((b) => b < 844), first.join(","));
   check("no horizontal scroll at 390", await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  // English nav labels are the widest; the last nav button must stay inside the viewport.
+  await page.click("#langBtn");
+  const navFit = [];
+  for (const width of [320, 820]) {
+    await page.setViewportSize({ width, height: 844 });
+    navFit.push(await page.evaluate(() => ({ w: innerWidth, sw: document.documentElement.scrollWidth, help: Math.round(document.querySelector("#helpBtn").getBoundingClientRect().right) })));
+  }
+  check("English nav fits with no horizontal scroll at 320 and 820", navFit.every((m) => m.sw <= m.w && m.help <= m.w), JSON.stringify(navFit));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.click("#langBtn");
 
   await page.click("#practiceBtn");
   await page.waitForSelector("#gameView:not([hidden])");
