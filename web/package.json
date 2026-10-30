@@ -1,0 +1,26 @@
+{
+  "name": "squeek-supply-station-web",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build --emptyOutDir && node scripts/write-manifest.mjs",
+    "manifest": "node scripts/write-manifest.mjs",
+    "preview": "vite preview --outDir ../dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@coinbase/wallet-sdk": "^4.4.0",
+    "@wagmi/connectors": "^5.11.2",
+    "@wagmi/core": "2.21.2",
+    "viem": "^2.57.13"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0",
+    "jsdom": "^27.0.0"
+  }
+}

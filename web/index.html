@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Squeek Supply Station · 轮次补给站</title>
+    <meta
+      name="description"
+      content="A three-minute merge game built from real Squeekchain settlements, with a verified leaderboard and Sepolia score pinning."
+    />
+    <meta property="og:title" content="Squeek Supply Station" />
+    <meta
+      property="og:description"
+      content="Daily hamster supply runs from real Squeekchain settlements. Server-verified leaderboard, scores pinned on Sepolia."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="./og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#fff8ed" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  </head>
+  <body data-view="lobby">
+    <a class="skip" href="#main" data-i18n="skip">跳到内容</a>
+    <header class="topbar">
+      <button class="brand" id="homeBtn" aria-label="Squeek Supply Station">
+        <canvas id="brandIcon" aria-hidden="true"></canvas>
+        <span class="brand-name">Squeek<span class="brand-sub" data-i18n="station">轮次补给站</span></span>
+      </button>
+      <nav aria-label="Main">
+        <button id="lobbyBtn" data-i18n="play">挑战</button>
+        <button id="boardBtn" data-i18n="leaderboard">排行榜</button>
+        <button id="contractBtn" data-i18n="contract">合约</button>
+        <button id="helpBtn" data-i18n="help">怎么玩</button>
+      </nav>
+      <div class="header-actions">
+        <button id="muteBtn" class="icon-btn" aria-label="Sound"></button>
+        <button id="langBtn" class="icon-btn" aria-label="Switch language">EN</button>
+        <button id="walletBtn" class="wallet" data-i18n="connect">连接钱包</button>
+      </div>
+    </header>
+    <div id="chainBanner" class="banner" role="status" hidden>
+      <span data-i18n="wrongChain"></span>
+      <button id="switchBtn" class="primary"></button>
+    </div>
+    <main id="main">
+      <section id="lobby" class="view">
+        <div class="hero">
+          <h1 data-i18n="headline"></h1>
+          <p class="lead" data-i18n="intro"></p>
+          <div class="hero-actions">
+            <button class="primary" id="dailyBtn" disabled data-i18n="daily"></button>
+            <button id="practiceBtn" data-i18n="practice"></button>
+          </div>
+          <p class="hint" id="entryHint" data-i18n="anonymousHint"></p>
+        </div>
+        <section class="card challenge-card" aria-labelledby="challengeHeading">
+          <div class="section-title">
+            <h2 id="challengeHeading" data-i18n="today"></h2>
+            <span class="tag" id="challengeDate"></span>
+          </div>
+          <p id="challengeStatus" class="hint" role="status" data-i18n="loading"></p>
+          <div class="phase-grid" id="phaseCards"></div>
+          <details>
+            <summary data-i18n="sourceTitle"></summary>
+            <div id="sourceBody"></div>
+            <p class="hint" data-i18n="sourceRule"></p>
+          </details>
+          <button id="retryChallenge" hidden data-i18n="retry"></button>
+        </section>
+        <div class="principles">
+          <article>
+            <h3 data-i18n="rule1"></h3>
+            <p data-i18n="rule1body"></p>
+          </article>
+          <article>
+            <h3 data-i18n="rule2"></h3>
+            <p data-i18n="rule2body"></p>
+          </article>
+          <article>
+            <h3 data-i18n="rule3"></h3>
+            <p data-i18n="rule3body"></p>
+          </article>
+        </div>
+      </section>
+      <section id="gameView" class="view" hidden aria-label="Game">
+        <div class="game-top">
+          <div class="game-mode">
+            <span class="tag" id="runMode"></span>
+            <span id="rankedLabel" class="hint"></span>
+          </div>
+          <button id="quitBtn" data-i18n="finish"></button>
+        </div>
+        <div class="game-layout">
+          <aside class="game-context">
+            <h2 class="small-title" data-i18n="journey"></h2>
+            <ol id="journey"></ol>
+            <p class="hint" data-i18n="gameNotice"></p>
+          </aside>
+          <div class="play-column">
+            <div class="hud">
+              <div><span data-i18n="score"></span><b id="score">0</b></div>
+              <div><span data-i18n="delivered"></span><b id="delivered">0</b></div>
+              <div><span data-i18n="remaining"></span><b id="time">3:00</b></div>
+            </div>
+            <div class="energy-label"><span data-i18n="energy"></span><span id="fever"></span></div>
+            <div class="bar"><div id="energyBar"></div></div>
+            <div class="stage">
+              <canvas
+                id="game"
+                tabindex="0"
+                role="img"
+                aria-label="Game board: arrows aim, space drops, E delivers, C stores, X shakes"
+              ></canvas>
+            </div>
+            <p class="hint controls-hint" data-i18n="controls"></p>
+          </div>
+          <aside class="game-tools">
+            <div class="card mission">
+              <p class="hint" id="phaseTitle"></p>
+              <h2 id="missionTitle"></h2>
+              <p id="missionProgress"></p>
+              <p class="hint" id="missionReward"></p>
+              <button id="deliverBtn" class="primary" disabled data-i18n="deliver"></button>
+              <p class="hint" id="deliveryHint" role="status"></p>
+              <p class="hint" id="nextMission"></p>
+            </div>
+            <div class="card queue-card">
+              <span class="hint" data-i18n="next"></span>
+              <div id="queue"></div>
+            </div>
+            <div class="tools">
+              <button id="pouchBtn"><canvas id="pouchIcon" aria-hidden="true"></canvas><span data-i18n="pouch"></span></button>
+              <button id="shakeBtn"><b id="shakes">2</b><span data-i18n="shake"></span></button>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <section id="boardView" class="view" hidden>
+        <div class="section-title">
+          <h1 data-i18n="leaderboard"></h1>
+          <label class="date-field"><span data-i18n="date"></span><input type="date" id="boardDate" /></label>
+        </div>
+        <p class="hint"><span data-i18n="verifiedBoard"></span>. <span data-i18n="boardRules"></span></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="rank"></th>
+                <th data-i18n="player"></th>
+                <th data-i18n="score"></th>
+                <th data-i18n="delivered"></th>
+                <th data-i18n="proof"></th>
+              </tr>
+            </thead>
+            <tbody id="boardBody"></tbody>
+          </table>
+        </div>
+        <button id="refreshBoard" data-i18n="refresh"></button>
+      </section>
+      <section id="contractView" class="view" hidden>
+        <h1 data-i18n="contractTitle"></h1>
+        <p class="lead" data-i18n="contractLead"></p>
+        <div class="contract-grid">
+          <section class="card" aria-labelledby="stateHeading">
+            <h2 id="stateHeading" data-i18n="contract"></h2>
+            <dl class="facts" id="contractFacts"></dl>
+            <p class="hint" id="codeStatus" role="status"></p>
+            <button id="refreshChain" data-i18n="refreshChain"></button>
+          </section>
+          <section class="card" aria-labelledby="recordHeading">
+            <h2 id="recordHeading" data-i18n="yourRecord"></h2>
+            <dl class="facts" id="playerFacts"></dl>
+            <p class="hint" id="playerHint" data-i18n="connectToRead"></p>
+            <p class="hint" data-i18n="pinHowTo"></p>
+          </section>
+          <section class="card owner-card" aria-labelledby="ownerHeading">
+            <h2 id="ownerHeading" data-i18n="ownerPanel"></h2>
+            <p class="hint" id="ownerHint" data-i18n="ownerOnly"></p>
+            <div id="ownerControls" hidden>
+              <label class="field"><span data-i18n="newSigner"></span><input id="signerInput" autocomplete="off" spellcheck="false" placeholder="0x…" /></label>
+              <div class="row-actions">
+                <button data-tx="setSigner" data-i18n="setSigner"></button>
+                <button data-tx="replaceSigner" data-i18n="replaceSigner"></button>
+              </div>
+              <button data-tx="revokePreviousSigner" data-i18n="revokePrevious"></button>
+              <label class="field"><span data-i18n="challengeIdLabel"></span><input id="challengeInput" autocomplete="off" spellcheck="false" placeholder="0x…" /></label>
+              <button data-tx="clearChallengeConfig" data-i18n="clearConfig"></button>
+              <label class="field"><span data-i18n="newOwner"></span><input id="ownerInput" autocomplete="off" spellcheck="false" placeholder="0x…" /></label>
+              <button data-tx="transferOwnership" data-i18n="transferOwnership"></button>
+            </div>
+            <div id="acceptControls" hidden>
+              <p class="hint" data-i18n="pendingAccept"></p>
+              <button class="primary" data-tx="acceptOwnership" data-i18n="acceptOwnership"></button>
+            </div>
+            <p class="hint" id="ownerStatus" role="status"></p>
+            <a id="ownerTx" target="_blank" rel="noopener" hidden data-i18n="viewTx"></a>
+          </section>
+        </div>
+      </section>
+      <footer>
+        <span data-i18n="footer"></span>
+        <span class="footer-links"
+          ><a id="apiLink" target="_blank" rel="noopener" data-i18n="apiOrigin"></a
+          ><a href="https://squeekchain.com/" target="_blank" rel="noopener" data-i18n="official"></a
+        ></span>
+      </footer>
+    </main>
+    <dialog id="resultDialog">
+      <div class="result-card">
+        <h2 class="small-title" data-i18n="runComplete"></h2>
+        <p id="resultScore" class="big-number">0</p>
+        <p id="resultStats"></p>
+        <p id="resultStatus" role="status"></p>
+        <p id="resultRank"></p>
+        <p id="chainStatus" class="hint" role="status"></p>
+        <a id="txLink" target="_blank" rel="noopener" hidden data-i18n="viewTx"></a>
+        <div class="dialog-actions">
+          <button id="resultConnect" hidden data-i18n="connect"></button>
+          <button id="retryFinish" hidden data-i18n="retryFinish"></button>
+          <button id="pinBtn" class="primary" hidden data-i18n="pin"></button>
+          <button id="againBtn" data-i18n="again"></button>
+          <button id="resultHome" data-i18n="back"></button>
+        </div>
+        <p class="hint" data-i18n="trust"></p>
+      </div>
+    </dialog>
+    <dialog id="helpDialog">
+      <h2 data-i18n="help"></h2>
+      <div id="helpBody"></div>
+      <button id="closeHelp" data-i18n="close"></button>
+    </dialog>
+    <div id="toasts" role="status" aria-live="polite"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

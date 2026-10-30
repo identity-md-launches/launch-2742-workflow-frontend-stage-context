@@ -1,0 +1,32 @@
+{
+  "chainId": 11155111,
+  "repoUrl": "https://github.com/identity-md-launches/launch-2736-squeeksupplyboard",
+  "version": 1,
+  "launchId": "334bd55d-94b0-4a08-93ca-4b0d3d263cfa",
+  "manifest": {
+    "kind": "evm_contracts",
+    "notes": "Deploy SqueekSupplyBoard on Sepolia with constructor arguments initialOwner and initialSigner, in that order. Both are the static addresses the approved brief states: owner 0x51404e4a699e4e338e143fb2a45c5cdc96392575 and public score signer 0x2Dc8205A9650faFB65B51aE25cC34cEfDEe08653. The board records server-attested scores using the SqueekSupply EIP-712 domain version 2; only its owner can rotate the signer. Deployment requires no ETH or initialization calls.",
+    "contracts": [
+      {
+        "contract": "SqueekSupplyBoard",
+        "constructorArgs": [
+          "0x51404e4a699e4e338e143fb2a45c5cdc96392575",
+          "0x2Dc8205A9650faFB65B51aE25cC34cEfDEe08653"
+        ]
+      }
+    ]
+  },
+  "contracts": [
+    {
+      "name": "SqueekSupplyBoard",
+      "txHash": "0x3e2a5ad00f64a41ec2ac257ec45938a4991d0e1177c0f3177f6d7bf85f5cacbb",
+      "abiHash": "1378c693335826bd094444e8eabf7e17b3caed76d895d92026ad177c29ea9322",
+      "address": "0x21384e42f851956fa673459297d76dfe8e778c5d",
+      "blockNumber": 12028423,
+      "creationCodeHash": "ed669ec0118e50f85f64d1f35fd304b9786d4050a6ade5377a540c26a24f05c9"
+    }
+  ],
+  "sourceCommit": "ac4a5c775fe04796d230519a7c748fb71865678d",
+  "abiInstructions": "Build ABIs from this exact source commit; compare canonicalKeccak(abi) with abiHash. Verify deployed code on the stated chain before enabling transactions.",
+  "attestationHash": "b8fde41b7328c2185ca1f4cfa69d77472d680153c3a46aa5d75c82adbaa71176"
+}
