@@ -49,24 +49,29 @@ const icon = (src?: string) => {
 };
 
 export class ConnectSheet {
-  private bg: HTMLDivElement | null = null;
-  private onKey = (e: KeyboardEvent) => e.key === "Escape" && this.close();
+  private dialog: HTMLDialogElement | null = null;
+  private trigger: HTMLElement | null = null;
   constructor(
     private getConnectors: () => readonly Connector[],
     private onPick: (c: Connector) => Promise<void>,
   ) {}
   get isOpen() {
-    return !!this.bg;
+    return !!this.dialog;
   }
+  /** A native modal dialog, so it sits in the top layer above any open modal (the results
+   * dialog) and the browser keeps focus inside it. */
   open(mobile = isMobileBrowser()) {
-    this.close();
-    const bg = el("div", "sheet-bg");
-    bg.onclick = () => this.close();
-    const sheet = el("div", "sheet");
-    sheet.setAttribute("role", "dialog");
-    sheet.setAttribute("aria-modal", "true");
+    const trigger = this.dialog ? this.trigger : (document.activeElement as HTMLElement | null);
+    this.close(false);
+    this.trigger = trigger;
+    const sheet = el("dialog", "sheet");
     sheet.setAttribute("aria-label", t("connectTitle"));
-    sheet.onclick = (e) => e.stopPropagation();
+    // A click on the dialog box itself, outside its content, is a click on the backdrop.
+    sheet.onclick = (e) => e.target === sheet && this.close();
+    sheet.addEventListener("cancel", (e) => {
+      e.preventDefault();
+      this.close();
+    });
     const head = el("div", "sheet-head");
     const x = el("button", "x", "×");
     x.setAttribute("aria-label", t("close"));
@@ -104,15 +109,18 @@ export class ConnectSheet {
       sheet.append(b);
     }
     sheet.append(note);
-    bg.append(sheet);
-    document.body.append(bg);
-    addEventListener("keydown", this.onKey);
-    this.bg = bg;
+    document.body.append(sheet);
+    sheet.showModal();
+    this.dialog = sheet;
     (rows[0] ?? x).focus();
   }
-  close() {
-    this.bg?.remove();
-    this.bg = null;
-    removeEventListener("keydown", this.onKey);
+  close(restoreFocus = true) {
+    const sheet = this.dialog;
+    if (!sheet) return;
+    this.dialog = null;
+    if (sheet.open) sheet.close();
+    sheet.remove();
+    if (restoreFocus && this.trigger?.isConnected) this.trigger.focus();
+    if (restoreFocus) this.trigger = null;
   }
 }

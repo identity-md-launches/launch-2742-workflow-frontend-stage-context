@@ -34,7 +34,9 @@ assignment may write only `web/**`, `dist/**` and `docs/**`; the repository root
   address/bytes32 inputs and one button per contract function).
 - Result dialog: score in `--fs-6`, verification status, rank, chain status line, Pin on Sepolia,
   play again, back.
-- Wallet sheet: 420 px max, 48 px rows (icon 28 px + name), × close, backdrop and Escape close;
+- Wallet sheet: a native modal `<dialog>` opened with `showModal()`, so it sits in the top layer
+  above the result dialog and keeps focus inside it; 420 px max, 48 px rows (icon 28 px + name),
+  × close, backdrop and Escape close, focus returns to the control that opened it; full-width
   bottom sheet under 680 px.
 - Toasts: bottom-right stack, non-interactive.
 
@@ -43,7 +45,9 @@ assignment may write only `web/**`, `dist/**` and `docs/**`; the repository root
 - ≥1001 px: game in three columns (route, board, tools).
 - 681–1000 px: route column hidden; board + tools.
 - ≤680 px: 16 px gutters, nav on its own row, h1 28 px, phase tiles and rules stacked, game becomes
-  a single column (mission, board ≤280 px wide, queue, tools), sheet becomes a bottom sheet.
+  a single column (mission, board ≤280 px wide, queue, tools), sheet becomes a bottom sheet. The
+  delivery hint keeps `min-height: 3.2em` (two lines) so the board does not move when its copy
+  changes between waiting, ready and done.
 - `body` min-width 320 px; addresses wrap with `overflow-wrap:anywhere`; the probe found no sideways
   scroll at 320, 390 or 1440.
 - `prefers-reduced-motion`: transitions off.

@@ -116,7 +116,9 @@ try {
   check("connect sheet lists the EIP-6963 wallet and Coinbase, no 'Injected'", rows.some((r) => r.includes("Test Wallet")) && rows.some((r) => /Coinbase/.test(r)) && !rows.some((r) => /Injected/.test(r)), rows.join(" | "));
   await page.locator(".sheet .row", { hasText: "Test Wallet" }).click();
   await page.waitForFunction(() => /0x5140/.test(document.querySelector("#walletBtn").textContent), null, { timeout: 15000 });
-  const log = await page.evaluate(() => window.__walletLog.map((x) => x.method));
+  // The address shows on connect; sign-in (chain switch, personal_sign, API verify) completes after it.
+  await page.waitForFunction(() => /Signed in|已登录/.test(document.querySelector("#entryHint").textContent), null, { timeout: 15000 }).catch(() => {});
+  const log =await page.evaluate(() => window.__walletLog.map((x) => x.method));
   const add = await page.evaluate(() => window.__walletLog.find((x) => x.method === "wallet_addEthereumChain")?.params?.[0]);
   check("wrong chain: switch fails with 4902, then wallet_addEthereumChain, then switch", log.includes("wallet_addEthereumChain") && log.lastIndexOf("wallet_switchEthereumChain") > log.indexOf("wallet_addEthereumChain"));
   check("addEthereumChain parameters equal network.json walletAddChain", JSON.stringify(add) === JSON.stringify(network.walletAddChain));

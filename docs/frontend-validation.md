@@ -13,6 +13,7 @@ SqueekSupplyBoard 0x21384e42f851956fa673459297d76dfe8e778c5d, abiHash 1378c693�
 | `npm run build` | pass; manifest written, 10 assets hashed |
 | `npm test` (vitest, 7 tests) | 7/7 pass |
 | `node test/e2e.mjs` (Chromium, 390 px, scripted EIP-6963 wallet) | 19/20 pass, see below |
+| Revision reproduction script (Chromium and WebKit, see "Revision 2") | all pass on the new export; 8 fail on the previous export |
 | design probe `taste.mjs` on `dist/` | 16/16 checks pass |
 | On-chain: `eth_getCode` / `signer()` / `owner()` via the public Sepolia RPC | code present; signer 0x2Dc8…8653, owner 0x5140…2575, as the brief states |
 | Real API `/v1/config` | board 0x21384e…8c5d (matches the handoff), attestationConfigured true, signer matches the contract |
@@ -51,7 +52,8 @@ Coverage: source review of `web/index.html`, `web/src/style.css`, `web/src/main.
 `web/src/sheet.ts`, plus rendered checks through the probe and e2e at 320/390/1440.
 
 - Accessibility: skip link, labelled nav with `aria-current`, `role=status` regions for async
-  results, dialog-based sheet with Escape/backdrop/× close and focus on the first row, 2 px focus
+  results, wallet sheet as a native modal `<dialog>` (top layer, page behind it inert) with
+  Escape/backdrop/× close, focus on the first row and back on the trigger when it closes, 2 px focus
   ring. Fixed: emoji sound toggle replaced with an SVG and a translated `aria-label`
   (`web/src/main.ts`, `renderMute`).
 - Layout: first screen at 390 now shows headline, one plain line, both play buttons and the wallet
@@ -69,3 +71,42 @@ Coverage: source review of `web/index.html`, `web/src/style.css`, `web/src/main.
 
 Remaining limitations: two controls under the 44 px comfortable size at 390 (reported, not failed,
 by the probe); the game board itself is a canvas and is described by its `aria-label` only.
+
+## Revision 2: reviewer findings
+
+The previous export (`git archive HEAD dist`) and the rebuilt export were both run through a
+Playwright script that follows each finding's reproduction, in Chromium and WebKit at 390x844
+(and 320 where noted), with the game API and RPC answered by the test.
+
+- 4f7d25d3 (wallet picker behind the results dialog), reproduced: with a restored pending ranked
+  result and no wallet, `elementFromPoint` at the first wallet row's centre was `resultDialog` and
+  the click never reached the wallet; from the lobby, Tab went from the picker to BODY, the skip
+  link and the nav buttons. Fixed in `web/src/sheet.ts`: the picker is now a `<dialog>` opened
+  with `showModal()`, closed with `close()`, with focus returned to its trigger; connector and
+  signing logic unchanged. CSS in `web/src/style.css` (wallet sheet section and the ≤680 px
+  bottom sheet). After: the row is the top element, clicking it runs `eth_requestAccounts` and
+  `personal_sign`; Tab only cycles through the picker's controls (and out to the browser chrome,
+  as a native modal does), never to page controls; Escape and backdrop close it; it fits at 320,
+  390 and 1440 with no sideways scroll.
+- 605d852a (board moves when the delivery hint changes), reproduced: `.stage` top moved by
+  22.39 px between the waiting copy (two lines) and the ready copy (one line) at 320 and 390.
+  Fixed: the ≤680 px `#deliveryHint` rule uses `min-height: 3.2em`. After: `.stage` top is the
+  same for the waiting, ready and mission-done copy in both languages. (Measured by freezing the
+  HUD loop and setting each hint text, not by playing to a level-3 hamster.)
+- f2fa4bed (failed challenge turns into "Loading…" on language switch), reproduced with a 503 from
+  `/v1/challenges/today`: after switching language the status read "Loading…" in both languages
+  with no request pending. Fixed in `web/src/main.ts`: the failed request is kept in
+  `state.challengeError` and `renderChallenge()` renders loading, failed or loaded state, so the
+  language switch retranslates the failure. A failed reload also clears the stale challenge so
+  Daily stays disabled. After: "Daily challenge unavailable. Retry or play practice." plus the
+  reason in English and Chinese, still one request; Retry with a 200 shows three phases and
+  enables Daily.
+
+Also in this round: `web/package-lock.json` was out of sync with `package.json` (`npm ci` refused
+it: react, loose-envify and js-tokens missing as optional peers); `npm install` brought it in sync
+and the unchanged source rebuilt byte-identical to the previous export before any edit. The e2e
+"API sign-in" check read the hint before sign-in finished; it now waits for it (`web/test/e2e.mjs`).
+With that, e2e is 19/20; "no page errors" still fails with the same `undefined` rejection recorded
+above, and it fails the same way on the previous export. Design probe after the final build: 16/16
+checks pass; the 390 screenshot shows headline, both play buttons and the wallet control on the
+first screen. Not re-tested: the full played delivery cycle, real wallets, phones.

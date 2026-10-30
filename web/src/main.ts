@@ -29,6 +29,7 @@ const SOUND_OFF =
 const state: any = {
   view: "lobby",
   challenge: null,
+  challengeError: null, // the failed /v1/challenges/today request, kept so a language switch can retranslate it
   address: null as string | null, // signed-in API session address (lowercase)
   sim: null,
   run: null,
@@ -157,7 +158,12 @@ $("#switchBtn").onclick = async () => {
 // ---------- lobby ----------
 function renderChallenge() {
   const c = state.challenge;
-  if (!c) return;
+  if (!c) {
+    text("#challengeDate", "");
+    $("#phaseCards").innerHTML = "";
+    text("#challengeStatus", state.challengeError ? t("unavailable") + " " + errorMessage(state.challengeError) : t("loading"));
+    return;
+  }
   text("#challengeDate", c.day + " UTC");
   text("#challengeStatus", t("frozen"));
   const explorer = d?.network.explorer ?? "https://sepolia.etherscan.io";
@@ -173,17 +179,21 @@ function renderChallenge() {
 async function loadChallenge() {
   $<HTMLButtonElement>("#dailyBtn").disabled = true;
   $("#retryChallenge").hidden = true;
+  state.challengeError = null;
   text("#challengeStatus", t("loading"));
   try {
-    state.challenge = await api.request("/v1/challenges/today", { publicRead: true });
-    if (state.challenge.config.rulesVersion !== RULES_VERSION) throw new Error("rules_version_mismatch");
+    const challenge = await api.request("/v1/challenges/today", { publicRead: true });
+    if (challenge.config.rulesVersion !== RULES_VERSION) throw new Error("rules_version_mismatch");
+    state.challenge = challenge;
     renderChallenge();
     $<HTMLButtonElement>("#dailyBtn").disabled = false;
     $<HTMLInputElement>("#boardDate").value = state.challenge.day;
     $<HTMLInputElement>("#challengeInput").value ||= state.challenge.challengeId;
     renderPlayerFacts();
   } catch (e) {
-    text("#challengeStatus", t("unavailable") + " " + errorMessage(e));
+    state.challenge = null;
+    state.challengeError = e;
+    renderChallenge();
     $("#retryChallenge").hidden = false;
   }
 }

@@ -641,20 +641,12 @@ dialog::backdrop {
   font-size: var(--fs-2);
 }
 
-/* wallet sheet */
-.sheet-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: grid;
-  place-items: center;
-  background: #2b1d1466;
-}
+/* wallet sheet: a native modal <dialog>, styled by the dialog rules above */
 .sheet {
-  width: min(420px, 100%);
+  width: min(420px, calc(100% - 32px));
   padding: 16px;
-  background: var(--surface);
-  border-radius: var(--r-lg);
+}
+.sheet[open] {
   display: grid;
   gap: 8px;
 }
@@ -819,7 +811,7 @@ dialog::backdrop {
   }
   #deliveryHint {
     grid-column: 1/3;
-    min-height: 0;
+    min-height: 3.2em;
     margin: 2px 0 0;
   }
   .queue-card {
@@ -860,11 +852,11 @@ dialog::backdrop {
   td {
     padding: 12px 10px;
   }
-  .sheet-bg {
-    place-items: end stretch;
-  }
   .sheet {
     width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border-width: 1px 0 0;
     border-radius: var(--r-lg) var(--r-lg) 0 0;
   }
 }
